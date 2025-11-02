@@ -11,7 +11,9 @@ import PamController.PamConfiguration;
 import PamController.PamControlledUnit;
 import PamController.PamControlledUnitSettings;
 import PamController.PamControllerInterface;
+import PamController.PamSettingManager;
 import PamController.PamSettings;
+import gibbon.swing.GibbonDialog;
 
 public class GibbonControl extends PamControlledUnit implements PamSettings{
 
@@ -27,7 +29,7 @@ public class GibbonControl extends PamControlledUnit implements PamSettings{
 		addPamProcess(gibbonProcess);
 		
 		
-//		PamSettingManager.getInstance().registerSettings(this);
+		PamSettingManager.getInstance().registerSettings(this);
 	}
 
 	@Override
@@ -71,8 +73,18 @@ public class GibbonControl extends PamControlledUnit implements PamSettings{
 	 * @param parentFrame
 	 */
 	protected void showDetectionDialog(Frame parentFrame) {
-		// TODO Auto-generated method stub
-		
+		GibbonParameters newParams = GibbonDialog.showDialog(this);
+		if (newParams != null) {
+			gibbonParameters = newParams;
+			gibbonProcess.setupProcess();
+		}
+	}
+
+	/**
+	 * @return the gibbonParameters
+	 */
+	public GibbonParameters getGibbonParameters() {
+		return gibbonParameters;
 	}
 
 
