@@ -21,15 +21,21 @@ public class GibbonControl extends PamControlledUnit implements PamSettings{
 	
 	private GibbonParameters gibbonParameters = new GibbonParameters();
 	
-	private GibbonProcess gibbonProcess;
+	private GibbonPreProcess gibbonPreProcess;
+	
+	private GibbonDLProcess gibbonDLProcess;
 	
 	public GibbonControl(PamConfiguration pamConfiguration, String unitName) {
 		super(pamConfiguration, unitType, unitName);
-		gibbonProcess = new GibbonProcess(this);
-		addPamProcess(gibbonProcess);
-		
+		gibbonPreProcess = new GibbonPreProcess(this);
+		addPamProcess(gibbonPreProcess);
+		gibbonDLProcess = new GibbonDLProcess(this);
+		addPamProcess(gibbonDLProcess);		
 		
 		PamSettingManager.getInstance().registerSettings(this);
+		
+		gibbonParameters.nSliceX = 640;
+		gibbonParameters.nHopX = 3;
 	}
 
 	@Override
@@ -52,7 +58,7 @@ public class GibbonControl extends PamControlledUnit implements PamSettings{
 	public void notifyModelChanged(int changeType) {
 		super.notifyModelChanged(changeType);
 		if (changeType == PamControllerInterface.INITIALIZATION_COMPLETE) {
-			gibbonProcess.setupProcess();
+			gibbonPreProcess.setupProcess();
 		}
 	}
 
@@ -76,7 +82,7 @@ public class GibbonControl extends PamControlledUnit implements PamSettings{
 		GibbonParameters newParams = GibbonDialog.showDialog(this);
 		if (newParams != null) {
 			gibbonParameters = newParams;
-			gibbonProcess.setupProcess();
+			gibbonPreProcess.setupProcess();
 		}
 	}
 
@@ -85,6 +91,20 @@ public class GibbonControl extends PamControlledUnit implements PamSettings{
 	 */
 	public GibbonParameters getGibbonParameters() {
 		return gibbonParameters;
+	}
+
+	/**
+	 * @return the gibbonPreProcess
+	 */
+	public GibbonPreProcess getGibbonPreProcess() {
+		return gibbonPreProcess;
+	}
+
+	/**
+	 * @return the gibbonDLProcess
+	 */
+	public GibbonDLProcess getGibbonDLProcess() {
+		return gibbonDLProcess;
 	}
 
 
