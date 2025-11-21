@@ -19,5 +19,12 @@ public class ModelInputDataUnit extends PamDataUnit {
 		this.modelData = modelData;
 	}
 
+	/**
+	 * @return the modelData
+	 */
+	public float[][] getModelData() {
+		return modelData;
+	}
+
 
 }
