@@ -31,7 +31,8 @@ public class GibbonDLProcess extends PamProcess {
 	private int highestChannel;
 	
 //	String mFile = "C:\\Users\\dg50\\source\\repos\\Arcus-CRNN\\runNewData\\model\\crnn_model_finetuned_3.pt";
-	String mFile = "C:\\Users\\dg50\\source\\repos\\gibbon\\src\\models\\crnn_model0_for_java.pt";
+//	static String mFile = "C:\\Users\\dg50\\source\\repos\\gibbon\\src\\models\\crnn_model0_for_java.pt";
+	static String mFile = "/Users/jdjm/git/gibbon/src/models/crnn_model0_for_java.pt";
 	private Model dlModel;
 	private DLTranslator dlTranslator;
 	private Predictor<float[][][], float[]> dlPredictor;
@@ -46,6 +47,52 @@ public class GibbonDLProcess extends PamProcess {
 //	priva
 
 	public static void main(String args[]) {
+		
+		File modelFile = new File(mFile);
+		String modelFolder = modelFile.getParent();
+	
+		String modelName = modelFile.getName();
+		Model dlModel = Model.newInstance(mFile, "PyTorch");
+		try {
+			// model needs to be saved with Pytorch.jit.save
+			//https://docs.pytorch.org/docs/stable/generated/torch.jit.save.html 
+			dlModel.load(Paths.get(modelFolder), modelName);
+		} catch (Error e4) {
+			e4.printStackTrace();
+		} catch (MalformedModelException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		System.out.println(dlModel.describeInput());
+		
+		DLTranslator dlTranslator = new DLTranslator();
+		Predictor<float[][][], float[]>  dlPredictor = dlModel.newPredictor(dlTranslator);
+		
+		Random r = new Random();
+
+		int d1 = 1;
+		int d2 = 32;
+		int d3 = 751;
+		
+		float[][][] input = new float[d1][d2][d3];
+		for (int i = 0; i < d2; i++) {
+			for (int j = 0; j < d3; j++) {
+				input[0][i][j] = r.nextFloat()/2f+0.1f;
+			}
+		}
+		
+		try {
+			
+			long time0 = System.currentTimeMillis();
+			System.out.println("Running prediction");
+			float[] result = dlPredictor.predict(input);
+			long timerun = System.currentTimeMillis() - time0;
+			System.out.println("Prediction complete in "+timerun+" ms" + " Results length: " + result.length);
+			
+		} catch (TranslateException e) {
+			e.printStackTrace();
+		}
 		
 	}
 	
@@ -144,25 +191,46 @@ public class GibbonDLProcess extends PamProcess {
 		dlTranslator = new DLTranslator();
 		dlPredictor = dlModel.newPredictor(dlTranslator);
 		
-		
 		return true;
 	}
 	
-	private class DLTranslator implements Translator<float[][][], float[]> {
+	
+	private static class DLTranslator implements Translator<float[][][], float[]> {
+		
 
 		@Override
 		public NDList processInput(TranslatorContext ctx, float[][][] input) throws Exception {
+
+			int d1 = 1;
+			int d2 = 32;
+			int d3 = 751;
+			
+			
 			float[] flatData = DLUtils.flattenDoubleArrayF(input);
-			Shape shape = new Shape(1,d1,d2,d3);
+			Shape shape = new Shape(d1,d2,d3);
 			NDArray ndArray = ctx.getNDManager().create(flatData, shape);
+						
+			ndArray = ndArray.squeeze(); // Removes dimensions of size 1
+			ndArray = ndArray.reshape(shape);
+			
 			NDList ndList = new NDList(ndArray);
 			return ndList;
 		}
 
 		@Override
 		public float[] processOutput(TranslatorContext ctx, NDList list) throws Exception {
-			// TODO Auto-generated method stub
-			return new float[3];
+//			System.out.println("Ouput list: " + list.size());
+
+			NDArray temp_arr = list.get(0);
+
+			Number[] number = temp_arr.toArray(); 
+
+			float[] results = new float[number.length]; 
+			for (int i=0; i<number.length; i++) {
+				results[i] = number[i].floatValue(); 
+			}
+			
+			return results;
 		}
 		
 	}
@@ -171,5 +239,5 @@ public class GibbonDLProcess extends PamProcess {
 	public String getProcessName() {
 		return "DL Processing";
 	}
-
+	
 }
