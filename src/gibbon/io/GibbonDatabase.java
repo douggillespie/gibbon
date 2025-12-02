@@ -9,12 +9,12 @@ import gibbon.GibbonDataBlock;
 public class GibbonDatabase extends AcousticSQLLogging {
 
 	private GibbonControl gibbonControl;
-	private Object gibbonDatablock;
+	private Object gibbonDataBlock;
 
 	public GibbonDatabase(GibbonControl gibbonControl, GibbonDataBlock gibbonDataBlock) {
 		super(gibbonDataBlock, gibbonControl.getUnitName());
 		this.gibbonControl = gibbonControl;
-		this.gibbonDatablock = gibbonDatablock;
+		this.gibbonDataBlock = gibbonDataBlock;
 	}
 
 	@Override

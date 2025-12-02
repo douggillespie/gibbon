@@ -34,8 +34,8 @@ public class GibbonControl extends PamControlledUnit implements PamSettings{
 		
 		PamSettingManager.getInstance().registerSettings(this);
 		
-		gibbonParameters.nSliceX = 640;
-		gibbonParameters.nHopX = 3;
+		gibbonParameters.nSliceX = 751;
+		gibbonParameters.nHopX = 751;
 	}
 
 	@Override
