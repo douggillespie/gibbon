@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.Serializable;
 
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
 import PamController.PamConfiguration;
@@ -13,7 +14,10 @@ import PamController.PamControlledUnitSettings;
 import PamController.PamControllerInterface;
 import PamController.PamSettingManager;
 import PamController.PamSettings;
+import gibbon.offline.CallOfflineTask;
 import gibbon.swing.GibbonDialog;
+import offlineProcessing.OLProcessDialog;
+import offlineProcessing.OfflineTaskGroup;
 
 public class GibbonControl extends PamControlledUnit implements PamSettings{
 
@@ -25,17 +29,29 @@ public class GibbonControl extends PamControlledUnit implements PamSettings{
 	
 	private GibbonDLProcess gibbonDLProcess;
 	
+	private GibbonCallProcess gibbonCallProcess;
+
+	private CallOfflineTask callOfflineTask;
+
+	private OfflineTaskGroup offlineTaskGroup;
+	
 	public GibbonControl(PamConfiguration pamConfiguration, String unitName) {
 		super(pamConfiguration, unitType, unitName);
 		gibbonPreProcess = new GibbonPreProcess(this);
 		addPamProcess(gibbonPreProcess);
 		gibbonDLProcess = new GibbonDLProcess(this);
 		addPamProcess(gibbonDLProcess);		
+		gibbonCallProcess = new GibbonCallProcess(this);
+		addPamProcess(gibbonCallProcess);
 		
 		PamSettingManager.getInstance().registerSettings(this);
 		
 		gibbonParameters.nSliceX = 751;
 		gibbonParameters.nHopX = 751;
+		
+		if (isViewer()) {
+			createOfflineTasks();
+		}
 	}
 
 	@Override
@@ -71,7 +87,38 @@ public class GibbonControl extends PamControlledUnit implements PamSettings{
 				showDetectionDialog(parentFrame);
 			}
 		});
-		return menuItem;
+		if (isViewer() == false) {
+			return menuItem;
+		}
+		JMenu menu = new JMenu(getUnitName());
+		menu.add(menuItem);
+		
+		menuItem = new JMenuItem("Detect Calls");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				runDetectCallsTask(parentFrame);
+			}
+		});
+		menu.add(menuItem);
+		
+		return menu;
+	}
+
+	private void createOfflineTasks() {
+		callOfflineTask = new CallOfflineTask(this, gibbonDLProcess.getResultDataBlock(), gibbonCallProcess.getGibbonDataBlock());
+		offlineTaskGroup = new OfflineTaskGroup(this, getUnitName());
+		offlineTaskGroup.addTask(callOfflineTask);
+		addOfflineTaskGroup(offlineTaskGroup);
+	}
+
+	/**
+	 * Offline task to reprocess all gibbon calls from the model result data. 
+	 * @param parentFrame
+	 */
+	protected void runDetectCallsTask(Frame parentFrame) {
+		OLProcessDialog olp = new OLProcessDialog(getGuiFrame(), offlineTaskGroup, getUnitName());
+		olp.setVisible(true);
 	}
 
 	/**
@@ -105,6 +152,13 @@ public class GibbonControl extends PamControlledUnit implements PamSettings{
 	 */
 	public GibbonDLProcess getGibbonDLProcess() {
 		return gibbonDLProcess;
+	}
+
+	/**
+	 * @return the gibbonCallProcess
+	 */
+	public GibbonCallProcess getGibbonCallProcess() {
+		return gibbonCallProcess;
 	}
 
 

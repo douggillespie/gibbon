@@ -20,10 +20,14 @@ public class GibbonParameters implements Serializable, Cloneable {
 	
 	public double fLow = 1000;
 	
-	public double fHigh = 2000;
+	public double fHigh = 4000;
 	
 	public int nMels = 32;
 	
+	/**
+	 * Looking in https://librosa.org/doc/0.11.0/_modules/librosa/core/spectrum.html this is clearly the power that the
+	 * abs of the FFT is raised to. So 1 is rms, 2 is FFT magnitude squared, etc. 
+	 */
 	public int melPower = 1;
 	
 	/**
