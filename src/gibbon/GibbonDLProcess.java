@@ -10,6 +10,7 @@ import org.jamdev.jdl4pam.utils.DLUtils;
 
 import PamUtils.PamCalendar;
 import PamUtils.PamUtils;
+import PamView.dialog.warn.WarnOnce;
 import PamguardMVC.PamDataUnit;
 import PamguardMVC.PamObservable;
 import PamguardMVC.PamProcess;
@@ -44,7 +45,7 @@ public class GibbonDLProcess extends PamProcess {
 
 	//	String mFile = "C:\\Users\\dg50\\source\\repos\\Arcus-CRNN\\runNewData\\model\\crnn_model_finetuned_3.pt";
 	//	static String mFile = "C:\\Users\\dg50\\source\\repos\\gibbon\\src\\models\\crnn_model0_for_java.pt";
-	static String mFile = "C:\\Users\\dg50\\source\\repos\\Arcus-CRNN\\tidy_code\\finetune_data\\java_models\\crnn_model0.pt";
+//	static String mFile = "C:\\Users\\dg50\\source\\repos\\Arcus-CRNN\\tidy_code\\finetune_data\\java_models\\crnn_model0.pt";
 	//	static String mFile = "/Users/jdjm/git/gibbon/src/models/crnn_model0_for_java.pt";
 	private Model dlModel;
 	private DLTranslator dlTranslator;
@@ -225,11 +226,19 @@ public class GibbonDLProcess extends PamProcess {
 		resultDataBlock.setChannelMap(params.channelMap);
 		highestChannel = PamUtils.getHighestChannel(params.channelMap);
 
-		File modelFile = new File(mFile);
+		if (params.modelLocation == null) {
+			WarnOnce.showWarning(gibbonControl.getGuiFrame(), gibbonControl.getUnitName(), "No model file selected", WarnOnce.WARNING_MESSAGE);
+			return false;
+		}
+		File modelFile = new File(params.modelLocation);
+		if (modelFile.exists() == false) {
+			WarnOnce.showWarning(gibbonControl.getGuiFrame(), gibbonControl.getUnitName(), "Model file does not exist", WarnOnce.WARNING_MESSAGE);
+			return false;
+		}
 		String modelFolder = modelFile.getParent();
 
 		String modelName = modelFile.getName();
-		dlModel = Model.newInstance(mFile, "PyTorch");
+		dlModel = Model.newInstance(params.modelLocation, "PyTorch");
 		try {
 			// model needs to be saved with Pytorch.jit.save
 			//https://docs.pytorch.org/docs/stable/generated/torch.jit.save.html 
