@@ -39,5 +39,12 @@ public class GibbonParameters implements Serializable, Cloneable {
 	 * Advance in time in FFT slices. 
 	 */
 	public int nHopX = nSliceX / 2;
+	
+	/**
+	 * Parameters for the detector that runs on the model output
+	 */
+	public double threshold = 0.5; // detection threshold
+	
+	public int maxGap = 1; // maximum gap (ie results below threshold)
 
 }

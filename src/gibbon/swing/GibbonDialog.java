@@ -10,6 +10,7 @@ import java.io.File;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -22,6 +23,7 @@ import PamUtils.PamFileChooser;
 import PamUtils.PamFileFilter;
 import PamUtils.SelectFolder;
 import PamView.dialog.PamDialog;
+import PamView.dialog.PamGridBagContraints;
 import PamView.dialog.SourcePanel;
 import PamView.panel.PamAlignmentPanel;
 import PamguardMVC.PamDataBlock;
@@ -44,6 +46,10 @@ public class GibbonDialog extends PamDialog {
 	
 	private JButton browseModels;
 	
+	private JTextField threshold;
+	
+	private JTextField maxDetGap;
+	
 	private GibbonDialog(GibbonControl gibbonControl) {
 		super(gibbonControl.getGuiFrame(), gibbonControl.getUnitName(), true);
 		this.gibbonControl = gibbonControl;
@@ -59,7 +65,22 @@ public class GibbonDialog extends PamDialog {
 		browseModels = new JButton("Browse ...");
 		modelPanel.add(BorderLayout.NORTH, modelFile);
 		modelPanel.add(BorderLayout.SOUTH, new PamAlignmentPanel(browseModels, BorderLayout.EAST));
-		mainPanel.add(BorderLayout.SOUTH, modelPanel);
+		mainPanel.add(BorderLayout.CENTER, modelPanel);
+		
+		JPanel detPanel = new JPanel(new GridBagLayout());
+		GridBagConstraints c = new PamGridBagContraints();
+		detPanel.setBorder(new TitledBorder("Detection"));
+		detPanel.add(new JLabel("Detection threshold ", JLabel.RIGHT), c);
+		c.gridx++;
+		detPanel.add(threshold = new JTextField(3), c);
+		c.gridx = 0;
+		c.gridy++;
+		detPanel.add(new JLabel("Max gap ", JLabel.RIGHT), c);
+		c.gridx++;
+		detPanel.add(maxDetGap = new JTextField(3), c);
+		mainPanel.add(BorderLayout.SOUTH, detPanel);
+		threshold.setToolTipText("Deteciton threshold (used maximum of model outputs across all channels");
+		maxDetGap.setToolTipText("Max gap (results below threshold) in a single detection");
 		
 		setDialogComponent(mainPanel);
 		
@@ -87,6 +108,9 @@ public class GibbonDialog extends PamDialog {
 		sourcePanel.setChannelList(params.channelMap);
 		
 		modelFile.setText(params.modelLocation);
+		
+		threshold.setText(String.format("%3.2f", gibbonParameters.threshold));
+		maxDetGap.setText(String.format("%d", gibbonParameters.maxGap));
 		
 	}
 
@@ -123,6 +147,19 @@ public class GibbonDialog extends PamDialog {
 		}
 		catch (Exception e){
 			return showWarning("no model file selected");
+		}
+		
+		try {
+			params.threshold = Double.valueOf(threshold.getText());
+		}
+		catch (NumberFormatException e) {
+			return showWarning("Invalid detection threshold value");
+		}
+		try {
+			params.maxGap = Integer.valueOf(threshold.getText());
+		}
+		catch (NumberFormatException e) {
+			return showWarning("Invalid detection max gap value");
 		}
 		
 		return true;

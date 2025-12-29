@@ -24,12 +24,11 @@ public class GibbonCallProcess extends PamProcess {
 	private long[] resultTimes;
 	private int resultChannels;
 	private int resultState;
-	private int maxGap = 1;
 	private int minLegth = 2;
 	private int downCount;
 	private int upCount;
 	private GibbonDataUnit currentCall;
-	private float threshold = 3; 
+	private GibbonOverlayDraw gibbonOverlayDraw;
 
 	public GibbonCallProcess(GibbonControl gibbonControl) {
 		super(gibbonControl, null, "Call Detection");
@@ -38,7 +37,7 @@ public class GibbonCallProcess extends PamProcess {
 		gibbonDataBlock = new GibbonDataBlock(this, 1);
 		addOutputDataBlock(gibbonDataBlock);
 		gibbonDataBlock.SetLogging(new GibbonDatabase(gibbonControl, gibbonDataBlock));
-		gibbonDataBlock.setOverlayDraw(new GibbonOverlayDraw(gibbonControl, gibbonDataBlock));
+		gibbonDataBlock.setOverlayDraw(gibbonOverlayDraw = new GibbonOverlayDraw(gibbonControl, gibbonDataBlock));
 	}
 
 	@Override
@@ -60,6 +59,7 @@ public class GibbonCallProcess extends PamProcess {
 		// load the model file. Return false if it can't be set up. 
 
 		resultDataBlock = gibbonControl.getGibbonDLProcess().getResultDataBlock();
+		setParentDataBlock(resultDataBlock);
 		gibbonDataBlock.setChannelMap(params.channelMap);
 		lowestChannel = PamUtils.getLowestChannel(params.channelMap);
 		highestChannel = PamUtils.getHighestChannel(params.channelMap);
@@ -99,7 +99,7 @@ public class GibbonCallProcess extends PamProcess {
 				/*
 				 * See if we should start a call. 
 				 */
-				if (bestResult[i] >= threshold ) {
+				if (bestResult[i] >= params.threshold ) {
 					// start a call
 					currentCall = new GibbonDataUnit(resultTimes[i], channelMap, 0, 0);
 					currentCall.setDurationInMilliseconds(1000);
@@ -112,7 +112,7 @@ public class GibbonCallProcess extends PamProcess {
 				/* 
 				 * A call is developing, so see if we should end it. 
 				 */
-				if (bestResult[i] >= threshold) {
+				if (bestResult[i] >= params.threshold) {
 					upCount++;
 					downCount = 0;
 					currentCall.setDurationInMilliseconds(resultTimes[i]-currentCall.getTimeMilliseconds() + 1000);
@@ -121,7 +121,7 @@ public class GibbonCallProcess extends PamProcess {
 				else {
 					downCount++;
 				}
-				if (downCount > maxGap) {
+				if (downCount > params.maxGap) {
 					// end the call
 					double[] f = {params.fLow, params.fHigh};
 					currentCall.setFrequency(f);
@@ -138,6 +138,13 @@ public class GibbonCallProcess extends PamProcess {
 	 */
 	public GibbonDataBlock getGibbonDataBlock() {
 		return gibbonDataBlock;
+	}
+
+	/**
+	 * @return the gibbonOverlayDraw
+	 */
+	public GibbonOverlayDraw getGibbonOverlayDraw() {
+		return gibbonOverlayDraw;
 	}
 
 }

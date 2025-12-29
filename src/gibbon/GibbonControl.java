@@ -14,6 +14,10 @@ import PamController.PamControlledUnitSettings;
 import PamController.PamControllerInterface;
 import PamController.PamSettingManager;
 import PamController.PamSettings;
+import PamView.paneloverlay.overlaymark.OverlayMarkObservers;
+import gibbon.annotation.GibbonAnnotationHandler;
+import gibbon.annotation.GibbonAnnotationType;
+import gibbon.annotation.GibbonMarkObserver;
 import gibbon.offline.CallOfflineTask;
 import gibbon.swing.GibbonDialog;
 import offlineProcessing.OLProcessDialog;
@@ -34,6 +38,8 @@ public class GibbonControl extends PamControlledUnit implements PamSettings{
 	private CallOfflineTask callOfflineTask;
 
 	private OfflineTaskGroup offlineTaskGroup;
+
+//	private GibbonAnnotationHandler annotationHandler;
 	
 	public GibbonControl(PamConfiguration pamConfiguration, String unitName) {
 		super(pamConfiguration, unitType, unitName);
@@ -46,12 +52,21 @@ public class GibbonControl extends PamControlledUnit implements PamSettings{
 		
 		PamSettingManager.getInstance().registerSettings(this);
 		
+		OverlayMarkObservers.singleInstance().addObserver(new GibbonMarkObserver(this));
+		
+		/**
+		 * don't use the handler, just build everything in. Perhaps will use handler for
+		 * other annotations such as SNR later on. 
+		 */
+//		annotationHandler = new GibbonAnnotationHandler(this, gibbonCallProcess.getGibbonDataBlock());
+//		annotationHandler.addAnnotationType(new GibbonAnnotationType(this));
+		
 		gibbonParameters.nSliceX = 751;
 		gibbonParameters.nHopX = 751;
 		
-		if (isViewer()) {
+//		if (isViewer()) {
 			createOfflineTasks();
-		}
+//		}
 	}
 
 	@Override
@@ -125,11 +140,15 @@ public class GibbonControl extends PamControlledUnit implements PamSettings{
 	 * Show the detection dialog
 	 * @param parentFrame
 	 */
-	protected void showDetectionDialog(Frame parentFrame) {
+	public boolean showDetectionDialog(Frame parentFrame) {
 		GibbonParameters newParams = GibbonDialog.showDialog(this);
 		if (newParams != null) {
 			gibbonParameters = newParams;
 			gibbonPreProcess.setupProcess();
+			return true;
+		}
+		else {
+			return false;
 		}
 	}
 

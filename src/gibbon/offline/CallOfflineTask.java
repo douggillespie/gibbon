@@ -1,5 +1,8 @@
 package gibbon.offline;
 
+import java.awt.Component;
+import java.awt.Point;
+
 import PamController.PamControlledUnit;
 import PamguardMVC.PamDataBlock;
 import dataMap.OfflineDataMapPoint;
@@ -58,6 +61,16 @@ public class CallOfflineTask extends OfflineTask<GibbonResult>{
 	@Override
 	public void prepareTask() {
 		callDetector.prepareProcessOK();
+	}
+
+	@Override
+	public boolean hasSettings() {
+		return true;
+	}
+
+	@Override
+	public boolean callSettings(Component component, Point point) {
+		return gibbonControl.showDetectionDialog(gibbonControl.getGuiFrame());
 	}
 
 
