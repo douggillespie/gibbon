@@ -36,6 +36,7 @@ public class GibbonDialog extends PamDialog {
 	
 	private static GibbonDialog singleInstance;
 	
+	private GibbonCallDialogPanel gibbonCallDialogPanel;
 	private GibbonParameters params;
 	
 	private SourcePanel sourcePanel;

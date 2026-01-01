@@ -39,6 +39,8 @@ public class GibbonControl extends PamControlledUnit implements PamSettings{
 
 	private OfflineTaskGroup offlineTaskGroup;
 
+	private GibbonAnnotationHandler annotationHandler;
+
 //	private GibbonAnnotationHandler annotationHandler;
 	
 	public GibbonControl(PamConfiguration pamConfiguration, String unitName) {
@@ -58,8 +60,9 @@ public class GibbonControl extends PamControlledUnit implements PamSettings{
 		 * don't use the handler, just build everything in. Perhaps will use handler for
 		 * other annotations such as SNR later on. 
 		 */
-//		annotationHandler = new GibbonAnnotationHandler(this, gibbonCallProcess.getGibbonDataBlock());
-//		annotationHandler.addAnnotationType(new GibbonAnnotationType(this));
+		annotationHandler = new GibbonAnnotationHandler(this, gibbonCallProcess.getGibbonDataBlock());
+		annotationHandler.addAnnotationType(new GibbonAnnotationType(this));
+		gibbonCallProcess.getGibbonDataBlock().setAnnotationHandler(annotationHandler);
 		
 		gibbonParameters.nSliceX = 751;
 		gibbonParameters.nHopX = 751;
@@ -90,6 +93,8 @@ public class GibbonControl extends PamControlledUnit implements PamSettings{
 		super.notifyModelChanged(changeType);
 		if (changeType == PamControllerInterface.INITIALIZATION_COMPLETE) {
 			gibbonPreProcess.setupProcess();
+			gibbonDLProcess.setupProcess();
+			gibbonCallProcess.setupProcess();
 		}
 	}
 

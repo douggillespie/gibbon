@@ -6,6 +6,7 @@ import annotation.DataAnnotationType;
 import generalDatabase.SQLLoggingAddon;
 import gibbon.GibbonControl;
 import gibbon.GibbonDataUnit;
+import gibbon.swing.GibbonCallDialogPanel;
 
 public class GibbonAnnotationType extends DataAnnotationType<GibbonAnnotation> {
 
@@ -42,8 +43,7 @@ public class GibbonAnnotationType extends DataAnnotationType<GibbonAnnotation> {
 
 	@Override
 	public AnnotationDialogPanel getDialogPanel() {
-		// TODO Auto-generated method stub
-		return super.getDialogPanel();
+		return new GibbonCallDialogPanel(gibbonControl);
 	}
 
 	@Override

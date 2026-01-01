@@ -144,6 +144,9 @@ public class GibbonPreProcess extends PamProcess {
 
 	@Override
 	public void newData(PamObservable o, PamDataUnit arg) {
+//		if (gibbonControl.isViewer()) {
+//			return;
+//		}
 		if (o == getParentDataBlock()) {
 			RawDataUnit rawDataUnit = (RawDataUnit) arg;
 			if (decimatorWorker != null) { 

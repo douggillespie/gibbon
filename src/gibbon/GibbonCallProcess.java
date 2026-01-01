@@ -147,4 +147,10 @@ public class GibbonCallProcess extends PamProcess {
 		return gibbonOverlayDraw;
 	}
 
+	@Override
+	public void setupProcess() {
+		super.setupProcess();
+		prepareProcessOK();
+	}
+
 }

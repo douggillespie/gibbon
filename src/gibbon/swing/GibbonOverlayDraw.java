@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 
 import PamUtils.Coordinate3d;
@@ -14,6 +15,7 @@ import PamView.PamSymbol;
 import PamView.PamSymbolType;
 import PamView.GeneralProjector.ParameterType;
 import PamguardMVC.PamDataBlock;
+import PamguardMVC.PamDataUnit;
 import gibbon.GibbonControl;
 import gibbon.GibbonDataBlock;
 import gibbon.GibbonDataUnit;
@@ -88,6 +90,14 @@ public class GibbonOverlayDraw extends PamDetectionOverlayGraphics {
 		this.matchedGibbon = matchedGibbon;
 		this.tDrag = tDrag;
 		this.fDrag = fDrag;
+	}
+
+	@Override
+	protected Rectangle drawOnSpectrogram(Graphics g, PamDataUnit pamDataUnit, GeneralProjector generalProjector) {
+		if (matchedGibbon != null && matchedGibbon.getGibbonDataUnit() == pamDataUnit) {
+			return null;
+		}
+		return super.drawOnSpectrogram(g, pamDataUnit, generalProjector);
 	}
 
 }
