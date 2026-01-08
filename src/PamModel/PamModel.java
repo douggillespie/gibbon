@@ -1548,17 +1548,17 @@ final public class PamModel implements PamSettings {
 	}
 	
 	
-	public class PluginClassloader extends URLClassLoader {
-
-	    public PluginClassloader(URL[] urls, ClassLoader parent) {
-	        super(urls, parent);
-	    }
-
-	    @Override
-		public void addURL(URL url) {
-	        super.addURL(url);
-	    }
-	}
+//	public class PluginClassloader extends URLClassLoader {
+//
+//	    public PluginClassloader(URL[] urls, ClassLoader parent) {
+//	        super(urls, parent);
+//	    }
+//
+//	    @Override
+//		public void addURL(URL url) {
+//	        super.addURL(url);
+//	    }
+//	}
 
 
 	public PluginClassloader getClassLoader() {

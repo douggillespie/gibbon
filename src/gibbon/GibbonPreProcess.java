@@ -334,6 +334,7 @@ private class SpectrogramBlock implements Cloneable {
 	public void shuffle(int step) {
 		System.arraycopy(dataList, 0, dataList, blockLength-step, step);
 		dataPos -= step;
+		dataPos = Math.max(dataPos, 0);
 	}
 
 	@Override

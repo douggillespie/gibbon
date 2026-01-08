@@ -57,7 +57,7 @@ public class GibbonSpecPlugin implements DisplayPanelProvider {
 		public GibbonSpecPanel(DisplayPanelProvider displayPanelProvider, DisplayPanelContainer displayPanelContainer) {
 			super(displayPanelProvider, displayPanelContainer);
 			resultDataBlock.addObserver(this, true);
-			westAxis = new PamAxis(0, 1, 0, 1, -10, 10, PamAxis.ABOVE_LEFT, "DL Result", PamAxis.LABEL_NEAR_CENTRE, "%3.1f");
+			westAxis = new PamAxis(0, 1, 0, 1, 0., 1.0, PamAxis.ABOVE_LEFT, "DL Result", PamAxis.LABEL_NEAR_CENTRE, "%3.1f");
 		}
 
 		@Override

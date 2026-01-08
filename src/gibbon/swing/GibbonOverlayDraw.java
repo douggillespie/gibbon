@@ -97,7 +97,37 @@ public class GibbonOverlayDraw extends PamDetectionOverlayGraphics {
 		if (matchedGibbon != null && matchedGibbon.getGibbonDataUnit() == pamDataUnit) {
 			return null;
 		}
-		return super.drawOnSpectrogram(g, pamDataUnit, generalProjector);
+		GibbonDataUnit gibbonDataUnit = (GibbonDataUnit) pamDataUnit;
+		long t = System.currentTimeMillis();
+		gibbonDataUnit.setViewedAt(t);
+		gibbonDataUnit.updateDataUnit(t); // will force a database save
+		Rectangle rect = super.drawOnSpectrogram(g, pamDataUnit, generalProjector);
+		// the rect should be the outline of the sound, so can annotate around this. 
+		if (rect == null) {
+			return rect;
+		}
+		if (gibbonDataUnit.getCallType() != null) {
+			String str = annotationString(gibbonDataUnit);
+			g.drawString(str, rect.x, rect.y-2);
+		}
+		return rect;
+	}
+	
+	private String annotationString(GibbonDataUnit gibbon) {
+		String str;
+		String cType = gibbon.getCallType();
+		if (cType == null || cType.length() == 0) {
+			cType = "??";
+		}
+		str = cType;
+		if (gibbon.isAutoDetection()) {
+			str += String.format(", %3.2f", gibbon.getBestScore());
+		}
+		else {
+			str += " (manual)";
+		}
+		
+		return str;
 	}
 
 }

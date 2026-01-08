@@ -13,7 +13,6 @@ public class GibbonSymbolManager extends StandardSymbolManager {
 	
 	public GibbonSymbolManager(PamDataBlock pamDataBlock) {
 		super(pamDataBlock, defaultSymbol);
-		// TODO Auto-generated constructor stub
 	}
 
 }

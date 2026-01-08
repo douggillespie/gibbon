@@ -25,6 +25,7 @@ import PamView.paneloverlay.overlaymark.OverlayMark;
 import PamView.paneloverlay.overlaymark.OverlayMarkObserver;
 import PamView.paneloverlay.overlaymark.OverlayMarker;
 import Spectrogram.DirectDrawProjector;
+import clipgenerator.clipDisplay.ClipDisplayMarker;
 import detectiongrouplocaliser.DetectionGroupSummary;
 import gibbon.GibbonCallProcess;
 import gibbon.GibbonControl;
@@ -65,7 +66,14 @@ public class GibbonMarkObserver implements OverlayMarkObserver {
 	@Override
 	public boolean markUpdate(int markStatus, javafx.scene.input.MouseEvent mouseEvent, OverlayMarker overlayMarker,
 			OverlayMark overlayMark) {
-//		overlayMark.setHidden(false);
+		//		overlayMark.setHidden(false);	
+		if (overlayMark == null) {
+			return false;
+		}
+//		if (markStatus == MARK_END) {
+//			System.out.println("Gibbon " + overlayMarker.getMarkStatusString(markStatus, mouseEvent, overlayMarker, overlayMark));
+//		}
+
 		boolean consumed = false;
 		int markChannels = overlayMark.getMarkChannels();
 		int markChannel = PamUtils.getLowestChannel(markChannels);
@@ -79,10 +87,11 @@ public class GibbonMarkObserver implements OverlayMarkObserver {
 			existingGibbon = findExistingUnit(overlayMarker, markChannel, t0, f0);
 			dragStartFreq = f0;
 			dragStartTime = t0;
-//			System.out.printf("Mark start : %s\n", PamCalendar.formatDBDateTime(t0, true));
+			//			System.out.printf("Mark start : %s\n", PamCalendar.formatDBDateTime(t0, true));
 			if (swingDisplay != null && existingGibbon != null && existingGibbon.getEdges() != 0) {
-//				swingDisplay.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
-				swingDisplay.setCursor(selectMovementCursor(existingGibbon.getEdges()));
+				//				swingDisplay.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+				Cursor mc = selectMovementCursor(existingGibbon.getEdges());
+				swingDisplay.setCursor(mc);
 				gibbonCallProcess.getGibbonOverlayDraw().setMarkedDataUnit(existingGibbon, dragStartTime, dragStartFreq);
 				if (swingDisplay != null) {
 					swingDisplay.repaint();
@@ -105,7 +114,9 @@ public class GibbonMarkObserver implements OverlayMarkObserver {
 		if (markStatus == MARK_CANCELLED) {
 			existingGibbon = null;				
 			if (swingDisplay != null) {
+				gibbonCallProcess.getGibbonOverlayDraw().setMarkedDataUnit(existingGibbon, dragStartTime, dragStartFreq);
 				swingDisplay.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+				swingDisplay.repaint();
 			}
 		}
 		if (markStatus == MARK_END) {
@@ -121,12 +132,12 @@ public class GibbonMarkObserver implements OverlayMarkObserver {
 			if (f2 == dragStartFreq) {
 				df = f0-f2;
 			}
-//			System.out.printf("Mark end : %s-%s: %d\n", PamCalendar.formatDBDateTime(t0, true), 
-//					PamCalendar.formatDBDateTime(t2, true), t2-t0);
+			//			System.out.printf("Mark end : %s-%s: %d\n", PamCalendar.formatDBDateTime(t0, true), 
+			//					PamCalendar.formatDBDateTime(t2, true), t2-t0);
 			if (existingGibbon != null) {
 				updateGibbon(existingGibbon, tEnd, fEnd);
 			}
-			else if (t0!=t2 && f0!=f2){
+			else if (t0!=t2 && f0!=f2 && overlayMarker instanceof ClipDisplayMarker == false){
 				createGibbon(markChannels, t0, t2, f0, f2);
 			}
 			if (swingMouse != null) {
@@ -143,12 +154,13 @@ public class GibbonMarkObserver implements OverlayMarkObserver {
 				swingDisplay.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 			}
 			gibbonCallProcess.getGibbonOverlayDraw().setMarkedDataUnit(null, tEnd, fEnd);
+			swingDisplay.repaint();
 		}
-		
+
 		overlayMark.setHidden(existingGibbon != null);
 		return consumed;
 	}
-	
+
 	/**
 	 * Get an appropriate shaped cursor for edge dragging. 
 	 * @param edges
@@ -189,13 +201,14 @@ public class GibbonMarkObserver implements OverlayMarkObserver {
 		double[] f = {f0, f2};
 		gdu.setFrequency(f);
 		gdu.setModel(MANUALNAME);
-		
+
 		gdu = GibbonCallDialog.showDialog(gibbonControl.getGuiFrame(), gibbonControl, gdu);
 		if (gdu != null) {
 			callDataBlock.addPamData(gdu);
 			callDataBlock.sortData();
+			callDataBlock.notifyObservers(gdu);
 		}
-		
+
 	}
 
 	/**
@@ -209,19 +222,19 @@ public class GibbonMarkObserver implements OverlayMarkObserver {
 		GibbonDataUnit gibbon = match.getGibbonDataUnit();
 		double[] f = gibbon.getFrequency();
 		if ((edges & MatchedGibbon.LEFTBORDER) != 0) {
-			double duration = gibbon.getDurationInMilliseconds();
+			long endTime = gibbon.getEndTimeInMilliseconds();
 			gibbon.setTimeMilliseconds(tEnd);
-			gibbon.setDurationInMilliseconds(duration);
+			gibbon.setDurationInMilliseconds(endTime-tEnd);
 		}
 		else if ((edges & MatchedGibbon.RIGHTBORDER) != 0) {
 			gibbon.setDurationInMilliseconds(Math.max(.1, tEnd-gibbon.getTimeMilliseconds()));
 		}
 		if ((edges & MatchedGibbon.TOPBORDER) != 0) {
-//			System.out.printf("Set top frequency to %s\n", FrequencyFormat.formatFrequency(fEnd, true));
+			//			System.out.printf("Set top frequency to %s\n", FrequencyFormat.formatFrequency(fEnd, true));
 			f[1] = fEnd;
 		}
 		else if ((edges & MatchedGibbon.BOTTOMBORDER) != 0) {
-//			System.out.printf("Set bottom frequency to %s\n", FrequencyFormat.formatFrequency(fEnd, true));
+			//			System.out.printf("Set bottom frequency to %s\n", FrequencyFormat.formatFrequency(fEnd, true));
 			f[0] = fEnd;
 		}
 		gibbon.setFrequency(f);
@@ -240,9 +253,9 @@ public class GibbonMarkObserver implements OverlayMarkObserver {
 		// get all data units within a minute - none are that long
 		GeneralProjector<PamCoordinate> projector = overlayMarker.getProjector();
 		List<HoverData> hovData = projector.getHoverDataList();
-		
-//		ArrayList<GibbonDataUnit> data = callDataBlock.getDataCopy(tMillis-60000, tMillis+60000, false);
-//		for (GibbonDataUnit gibbon : data) {
+
+		//		ArrayList<GibbonDataUnit> data = callDataBlock.getDataCopy(tMillis-60000, tMillis+60000, false);
+		//		for (GibbonDataUnit gibbon : data) {
 		/*
 		 * Get the list from the projector, since that will be whats been plotted, not
 		 * what exists in the datablock. 
@@ -251,13 +264,13 @@ public class GibbonMarkObserver implements OverlayMarkObserver {
 			if (aHover.getDataUnit() instanceof GibbonDataUnit == false) {
 				continue;
 			}
-//			int subPlot = aHover.getSubPlotNumber();
-//			if (projector instanceof DirectDrawProjector) {
-//				subPlot = ((DirectDrawProjector) projector.getp)
-//			}
-//			projector.getHoveredDataUnit()
+			//			int subPlot = aHover.getSubPlotNumber();
+			//			if (projector instanceof DirectDrawProjector) {
+			//				subPlot = ((DirectDrawProjector) projector.getp)
+			//			}
+			//			projector.getHoveredDataUnit()
 			GibbonDataUnit gibbon = (GibbonDataUnit) aHover.getDataUnit();
-			if ((gibbon.getChannelBitmap() & 1<<markChannel) == 0) {
+			if (markChannel > 0 && (gibbon.getChannelBitmap() & 1<<markChannel) == 0) {
 				continue;
 			}
 			Double duration = gibbon.getDurationInMilliseconds();
@@ -303,7 +316,7 @@ public class GibbonMarkObserver implements OverlayMarkObserver {
 		if (existingGibbon == null) {
 			return null;
 		}
-		
+
 		GibbonDataUnit gibbon = existingGibbon.getGibbonDataUnit();
 		boolean isManual = MANUALNAME.equals(gibbon.getModel());
 		JPopupMenu pMenu = new JPopupMenu();
@@ -343,6 +356,9 @@ public class GibbonMarkObserver implements OverlayMarkObserver {
 			return;
 		}
 		callDataBlock.remove(gibbon, true);
+		gibbon.setLastUpdateTime(System.currentTimeMillis());
+		callDataBlock.updatePamData(gibbon, System.currentTimeMillis());
+//		callDataBlock.notifyObservers(gibbon);
 	}
 
 	@Override
@@ -366,5 +382,5 @@ public class GibbonMarkObserver implements OverlayMarkObserver {
 		return gibbonControl.getUnitName();
 	}
 
-	
+
 }

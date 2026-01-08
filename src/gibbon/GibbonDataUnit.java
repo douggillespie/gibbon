@@ -1,5 +1,7 @@
 package gibbon;
 
+import java.util.Arrays;
+
 import PamDetection.PamDetection;
 import PamguardMVC.DataUnitBaseData;
 import PamguardMVC.PamDataUnit;
@@ -33,6 +35,29 @@ public class GibbonDataUnit extends PamDataUnit implements PamDetection {
 	 * confidence score for manual detections, can also be added to automatic ones. 
 	 */
 	private int confidence; 
+	
+	/**
+	 * Time it was last viewed. Will be populated whenever the
+	 * data unit is drawn since I can't see another way of working out that
+	 * something has displayed it. 
+	 */
+	private Long viewedAt;
+	
+	/**
+	 * Flag for auto detection. not really needed since this information 
+	 * is recorded elsewhere, but helpful nonetheless.  
+	 */
+	private boolean autoDetection;
+	
+	/**
+	 * Times and frequencies of automatic detection information. will 
+	 * be null for manual detections. 
+	 */
+	private Long autoTimeMillis;
+	
+	private Double autoDuration;
+	
+	private double[] autoFrequency;
 	
 	/**
 	 * Free form comment. 
@@ -71,6 +96,7 @@ public class GibbonDataUnit extends PamDataUnit implements PamDetection {
 		if (manualEdit != null) {
 			str += "<br>Edits: " + manualEdit;
 		}
+		str += String.format("<br>Best score: %3.2f", bestScore);
 		
 		return str;
 	}
@@ -165,6 +191,88 @@ public class GibbonDataUnit extends PamDataUnit implements PamDetection {
 	 */
 	public void setComment(String comment) {
 		this.comment = comment;
+	}
+
+	/**
+	 * @return the viewedAt
+	 */
+	public Long getViewedAt() {
+		return viewedAt;
+	}
+
+	/**
+	 * @param viewedAt the viewedAt to set
+	 */
+	public void setViewedAt(Long viewedAt) {
+		this.viewedAt = viewedAt;
+	}
+
+	/**
+	 * @return the autoDetection
+	 */
+	public boolean isAutoDetection() {
+		return autoDetection;
+	}
+
+	/**
+	 * @param autoDetection the autoDetection to set
+	 */
+	public void setAutoDetection(boolean autoDetection) {
+		this.autoDetection = autoDetection;
+	}
+
+	/**
+	 * @return the autoTimeMillis
+	 */
+	public Long getAutoTimeMillis() {
+		return autoTimeMillis;
+	}
+
+	/**
+	 * @param autoTimeMillis the autoTimeMillis to set
+	 */
+	public void setAutoTimeMillis(Long autoTimeMillis) {
+		this.autoTimeMillis = autoTimeMillis;
+	}
+
+	/**
+	 * @return the autoDuration
+	 */
+	public Double getAutoDuration() {
+		return autoDuration;
+	}
+
+	/**
+	 * @param autoDuration the autoDuration to set
+	 */
+	public void setAutoDuration(Double autoDuration) {
+		this.autoDuration = autoDuration;
+	}
+
+	/**
+	 * @return the autoFrequency
+	 */
+	public double[] getAutoFrequency() {
+		return autoFrequency;
+	}
+
+	/**
+	 * @param autoFrequency the autoFrequency to set
+	 */
+	public void setAutoFrequency(double[] autoFrequency) {
+		this.autoFrequency = autoFrequency;
+	}
+
+	/**
+	 * Called when an auto detection is created and copies the basic
+	 * time and frequency information so that it gets saved in addtional 
+	 * database columns. 
+	 */
+	public void copyAutoInfo() {
+		this.autoDetection = true;
+		this.autoTimeMillis = getTimeMilliseconds();
+		this.autoDuration = getDurationInMilliseconds();
+		this.autoFrequency = Arrays.copyOf(getFrequency(), 2); // make sure it's copied so manual editing doesn't overwrite it. 
 	}
 
 }

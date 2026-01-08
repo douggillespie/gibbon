@@ -157,7 +157,7 @@ public class GibbonDialog extends PamDialog {
 			return showWarning("Invalid detection threshold value");
 		}
 		try {
-			params.maxGap = Integer.valueOf(threshold.getText());
+			params.maxGap = Integer.valueOf(maxDetGap.getText());
 		}
 		catch (NumberFormatException e) {
 			return showWarning("Invalid detection max gap value");

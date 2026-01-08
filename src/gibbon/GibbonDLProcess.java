@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Random;
 
+import org.apache.commons.math3.analysis.function.Sigmoid;
 import org.jamdev.jdl4pam.utils.DLUtils;
 
 import PamUtils.PamCalendar;
@@ -50,7 +51,10 @@ public class GibbonDLProcess extends PamProcess {
 	private Model dlModel;
 	private DLTranslator dlTranslator;
 	private Predictor<float[][][], float[]> dlPredictor;
+	
+	private String modelName; // extracted file name only. 
 
+	private Sigmoid sigmoid = new Sigmoid();
 
 	int d1 = 1;
 	int d2 = 32;
@@ -147,6 +151,10 @@ public class GibbonDLProcess extends PamProcess {
 		// now call the model I guess ? 
 		float[] result = runModel(modelInputDataUnit);
 		if (result != null) {
+			// run it through a sigmoid
+			for (int i = 0; i < result.length; i++) {
+				result[i] = (float) sigmoid.value(result[i]);
+			}
 			GibbonResult gibbonResult = new GibbonResult(modelInputDataUnit.getTimeMilliseconds(),
 					modelInputDataUnit.getEndTimeInMilliseconds() - modelInputDataUnit.getTimeMilliseconds(), 
 					modelInputDataUnit.getChannelBitmap(), result);
@@ -238,6 +246,7 @@ public class GibbonDLProcess extends PamProcess {
 		String modelFolder = modelFile.getParent();
 
 		String modelName = modelFile.getName();
+		this.modelName = modelName;
 		dlModel = Model.newInstance(params.modelLocation, "PyTorch");
 		try {
 			// model needs to be saved with Pytorch.jit.save
@@ -250,7 +259,7 @@ public class GibbonDLProcess extends PamProcess {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		System.out.println(dlModel.describeInput());
+		System.out.println("Load model " + params.modelLocation + ", describeInput: " + dlModel.describeInput());
 
 		dlTranslator = new DLTranslator();
 		dlPredictor = dlModel.newPredictor(dlTranslator);
@@ -309,6 +318,10 @@ public class GibbonDLProcess extends PamProcess {
 	 */
 	public GibbonResultDataBlock getResultDataBlock() {
 		return resultDataBlock;
+	}
+
+	public String getModelName() {		// TODO Auto-generated method stub
+		return modelName;
 	}
 
 }

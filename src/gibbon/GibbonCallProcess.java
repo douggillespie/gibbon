@@ -29,11 +29,13 @@ public class GibbonCallProcess extends PamProcess {
 	private int upCount;
 	private GibbonDataUnit currentCall;
 	private GibbonOverlayDraw gibbonOverlayDraw;
+	private GibbonDLProcess gibbonDLProcess;
 
 	public GibbonCallProcess(GibbonControl gibbonControl) {
 		super(gibbonControl, null, "Call Detection");
 		this.gibbonControl = gibbonControl;
 
+		gibbonDLProcess = gibbonControl.getGibbonDLProcess();
 		gibbonDataBlock = new GibbonDataBlock(this, 1);
 		addOutputDataBlock(gibbonDataBlock);
 		gibbonDataBlock.SetLogging(new GibbonDatabase(gibbonControl, gibbonDataBlock));
@@ -125,6 +127,9 @@ public class GibbonCallProcess extends PamProcess {
 					// end the call
 					double[] f = {params.fLow, params.fHigh};
 					currentCall.setFrequency(f);
+					currentCall.copyAutoInfo();
+					currentCall.setCallType("Female");
+					currentCall.setModel(gibbonDLProcess.getModelName());
 					gibbonDataBlock.addPamData(currentCall);
 					currentCall = null;
 					upCount = downCount = 0;
