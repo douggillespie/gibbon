@@ -16,6 +16,13 @@ public class GibbonResult extends PamDataUnit<PamDataUnit, PamDataUnit> {
 	private float[] result;
 	
 	private long[] resultTimes;
+	
+	/*
+	 *  the signal levels in the data for each result. These are the rms summed
+	 *  signal level for each segment and can be used to estimate SNR of calls
+	 *  during the detection stage  
+	 */
+	private float[] levels;
 
 	public GibbonResult(long timeMilliseconds, long durationMillis, int channelMap, float[] result) {
 		super(timeMilliseconds);
@@ -67,6 +74,22 @@ public class GibbonResult extends PamDataUnit<PamDataUnit, PamDataUnit> {
 			resultTimes = calcResultTimes();
 		}
 		return resultTimes;
+	}
+
+
+	/**
+	 * @return the levels
+	 */
+	public float[] getLevels() {
+		return levels;
+	}
+
+
+	/**
+	 * @param levels the levels to set
+	 */
+	public void setLevels(float[] levels) {
+		this.levels = levels;
 	}
 
 	

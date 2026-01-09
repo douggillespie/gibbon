@@ -17,8 +17,7 @@ public class GibbonPlugin implements PamPluginInterface {
 
 	@Override
 	public String getHelpSetName() {
-		// TODO Auto-generated method stub
-		return null;
+		return "help/Gibbon.hs";
 	}
 
 	@Override

@@ -59,6 +59,8 @@ public class GibbonDataUnit extends PamDataUnit implements PamDetection {
 	
 	private double[] autoFrequency;
 	
+	private Double snr;
+	
 	/**
 	 * Free form comment. 
 	 */
@@ -86,6 +88,9 @@ public class GibbonDataUnit extends PamDataUnit implements PamDetection {
 		str = str.substring(0, str.length()-4);
 		if (callType != null) {
 			str += "<br>Call Type: " + callType;
+		}
+		if (snr != null) {
+			str += String.format("<br>SNR: %3.1fdB", snr); 
 		}
 		if (model != null) {
 			str += "<br>Model: " + model; 
@@ -273,6 +278,20 @@ public class GibbonDataUnit extends PamDataUnit implements PamDetection {
 		this.autoTimeMillis = getTimeMilliseconds();
 		this.autoDuration = getDurationInMilliseconds();
 		this.autoFrequency = Arrays.copyOf(getFrequency(), 2); // make sure it's copied so manual editing doesn't overwrite it. 
+	}
+
+	/**
+	 * @return the SNR
+	 */
+	public Double getSNR() {
+		return snr;
+	}
+
+	/**
+	 * @param snr the SNR to set
+	 */
+	public void setSNR(Double snr) {
+		this.snr = snr;
 	}
 
 }

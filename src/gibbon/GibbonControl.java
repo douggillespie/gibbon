@@ -40,6 +40,8 @@ public class GibbonControl extends PamControlledUnit implements PamSettings{
 	private OfflineTaskGroup offlineTaskGroup;
 
 	private GibbonAnnotationHandler annotationHandler;
+	
+	public static final String helpPoint = "docs.gibbonoverview";
 
 //	private GibbonAnnotationHandler annotationHandler;
 	

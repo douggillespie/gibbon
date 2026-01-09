@@ -20,8 +20,12 @@ public class GibbonCallProcess extends PamProcess {
 	private GibbonDataBlock gibbonDataBlock;
 	private GibbonResultDataBlock resultDataBlock;
 	private int highestChannel, lowestChannel;
+	/**
+	 * Highest result across all channels. 
+	 */
 	private float[] bestResult;
 	private long[] resultTimes;
+	private float[] meanLevels;
 	private int resultChannels;
 	private int resultState;
 	private int minLegth = 2;
@@ -30,6 +34,9 @@ public class GibbonCallProcess extends PamProcess {
 	private GibbonDataUnit currentCall;
 	private GibbonOverlayDraw gibbonOverlayDraw;
 	private GibbonDLProcess gibbonDLProcess;
+	private float latestLevel;
+	private float signalLevel;
+	private int nLevel;
 
 	public GibbonCallProcess(GibbonControl gibbonControl) {
 		super(gibbonControl, null, "Call Detection");
@@ -77,25 +84,45 @@ public class GibbonCallProcess extends PamProcess {
 		int chan = PamUtils.getSingleChannel(resultData.getChannelBitmap());
 		float[] results = resultData.getResult();
 		long[] times = resultData.getResultTimes();
+		float[] levels = resultData.getLevels();
 		if (chan == lowestChannel) {
 			bestResult = Arrays.copyOf(results, results.length);
 			resultTimes = Arrays.copyOf(times, times.length);
 			resultChannels = resultData.getChannelBitmap();
+			meanLevels = Arrays.copyOf(levels, levels.length);
 		}
 		else {
 			for (int i = 0; i < results.length; i++) {
 				bestResult[i] = Math.max(bestResult[i], results[i]);
 			}
+			if (levels != null) {
+				for (int i = 0; i < levels.length; i++) {
+					meanLevels[i] += levels[i];
+				}
+			}
 			resultChannels |= resultData.getChannelBitmap();
 		}
 		if (chan == highestChannel) {
-			findCalls(resultTimes, bestResult, resultChannels);
+			if (meanLevels != null) {
+				int nChan = Integer.bitCount(resultChannels);
+				for (int i = 0; i < levels.length; i++) {
+					meanLevels[i] /= nChan;
+				}
+			}
+			
+			findCalls(resultTimes, bestResult, resultChannels, meanLevels);
 		}
 		
 	}
 
-	private void findCalls(long[] resultTimes, float[] bestResult, int channelMap) {
+	private void findCalls(long[] resultTimes, float[] bestResult, int channelMap, float[] meanLevels) {
 		GibbonParameters params = gibbonControl.getGibbonParameters();
+		if (meanLevels != null && meanLevels.length != bestResult.length) {
+			meanLevels = null; // should never happen !
+		}
+		if (meanLevels == null) {
+			meanLevels = new float[resultTimes.length];
+		}
 		for (int i = 0; i < resultTimes.length; i++) {
 			if (currentCall == null) {
 				/*
@@ -108,6 +135,12 @@ public class GibbonCallProcess extends PamProcess {
 					currentCall.setBestScore(bestResult[i]);
 					upCount = 1;
 					downCount = 0;
+					signalLevel = meanLevels[i];
+					nLevel = 1;
+				}
+				else {
+					// simple decaying running mean of background. 
+					latestLevel += ((meanLevels[i]-latestLevel) / 5);
 				}
 			}
 			else {
@@ -119,6 +152,8 @@ public class GibbonCallProcess extends PamProcess {
 					downCount = 0;
 					currentCall.setDurationInMilliseconds(resultTimes[i]-currentCall.getTimeMilliseconds() + 1000);
 					currentCall.addBestScore(bestResult[i]);
+					signalLevel += meanLevels[i];
+					nLevel++;
 				}
 				else {
 					downCount++;
@@ -130,6 +165,12 @@ public class GibbonCallProcess extends PamProcess {
 					currentCall.copyAutoInfo();
 					currentCall.setCallType("Female");
 					currentCall.setModel(gibbonDLProcess.getModelName());
+					if (latestLevel != 0) {
+						// latestLevel may be 0 in some very old data, or if the input was somehow not working, but
+						// generally this should always be true. 
+						double snr = 10*Math.log10(signalLevel/nLevel/latestLevel);
+						currentCall.setSNR(snr);
+					}
 					gibbonDataBlock.addPamData(currentCall);
 					currentCall = null;
 					upCount = downCount = 0;

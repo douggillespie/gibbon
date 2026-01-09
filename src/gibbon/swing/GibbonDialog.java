@@ -85,6 +85,8 @@ public class GibbonDialog extends PamDialog {
 		
 		setDialogComponent(mainPanel);
 		
+		setHelpPoint(GibbonControl.helpPoint);
+		
 		browseModels.addActionListener(new ActionListener() {
 			
 			@Override

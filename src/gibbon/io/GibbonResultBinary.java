@@ -40,7 +40,7 @@ public class GibbonResultBinary extends BinaryDataSource {
 
 	@Override
 	public int getModuleVersion() {
-		return 0;
+		return 1;
 	}
 
 	@Override
@@ -52,16 +52,25 @@ public class GibbonResultBinary extends BinaryDataSource {
 	public PamDataUnit sinkData(BinaryObjectData binaryObjectData, BinaryHeader bh, int moduleVersion) {
 		DataInputStream dis = new DataInputStream(new ByteArrayInputStream(binaryObjectData.getData()));
 		float[] result = null;
+		float[] levels = null;
 		try {
 			int nR = dis.readShort();
 			result = new float[nR];
 			for (int i = 0; i < nR; i++) {
 				result[i] = dis.readFloat();
 			}
+			if (moduleVersion >= 1) {
+				int nL = dis.readShort();
+				levels = new float[nL];
+				for (int i = 0; i < nL; i++) {
+					levels[i] = dis.readFloat();
+				}
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		GibbonResult gibbonResult = new GibbonResult(binaryObjectData.getDataUnitBaseData(), result);
+		gibbonResult.setLevels(levels);
 		return gibbonResult;
 	}
 
@@ -91,6 +100,16 @@ public class GibbonResultBinary extends BinaryDataSource {
 			dos.writeShort((short) result.length);
 			for (int i = 0; i < result.length; i++) {
 				dos.writeFloat(result[i]);
+			}
+			float[] levels = gibbonResult.getLevels();
+			if (levels == null) {
+				dos.writeShort(0);
+			}
+			else {
+				dos.writeShort(levels.length);
+				for (int i = 0; i < levels.length; i++) {
+					dos.writeFloat(levels[i]);
+				}
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

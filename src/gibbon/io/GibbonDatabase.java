@@ -16,7 +16,7 @@ public class GibbonDatabase extends AcousticSQLLogging {
 	private GibbonDataBlock gibbonDataBlock;
 	
 	private PamTableItem scoreItem;
-	private PamTableItem model, manualEdit, callType, confidence, comment;
+	private PamTableItem model, manualEdit, callType, confidence, comment, snr;
 	private PamTableItem autoDetection, viewedAt, autoStart, autoDuration, autoF1, autoF2;
 
 	public GibbonDatabase(GibbonControl gibbonControl, GibbonDataBlock gibbonDataBlock) {
@@ -29,6 +29,7 @@ public class GibbonDatabase extends AcousticSQLLogging {
 		model = new PamTableItem("Model", Types.CHAR, 30);
 		autoStart = new PamTableItem("AutoUTC", Types.TIMESTAMP);
 		autoDuration = new PamTableItem("AutoDuration", Types.DOUBLE);
+		snr = new PamTableItem("SNR", Types.DOUBLE);
 		autoF1 = new PamTableItem("AutoF1", Types.DOUBLE);
 		autoF2 = new PamTableItem("AutoF2", Types.DOUBLE);
 		callType = new PamTableItem("Call Type", Types.VARCHAR);
@@ -44,6 +45,7 @@ public class GibbonDatabase extends AcousticSQLLogging {
 		getTableDefinition().addTableItem(autoDuration);
 		getTableDefinition().addTableItem(autoF1);
 		getTableDefinition().addTableItem(autoF2);
+		getTableDefinition().addTableItem(snr);
 		getTableDefinition().addTableItem(viewedAt);
 		getTableDefinition().addTableItem(manualEdit);
 		getTableDefinition().addTableItem(callType);
@@ -75,6 +77,7 @@ public class GibbonDatabase extends AcousticSQLLogging {
 			autoF1.setValue(autoF[0]);
 			autoF2.setValue(autoF[1]);
 		}
+		snr.setValue(gibbonDataUnit.getSNR());
 		viewedAt.setValue(sqlTypes.getTimeStamp(gibbonDataUnit.getViewedAt()));
 		manualEdit.setValue(gibbonDataUnit.getManualEdit());
 		callType.setValue(gibbonDataUnit.getCallType());
@@ -111,6 +114,7 @@ public class GibbonDatabase extends AcousticSQLLogging {
 		if (aD != null) {
 			dataUnit.setAutoDuration(aD);
 		}
+		dataUnit.setSNR((Double) snr.getValue());
 		dataUnit.setAutoDetection(autoDetection.getBooleanValue());
 		dataUnit.setViewedAt(sqlTypes.millisFromTimeStamp(viewedAt.getValue()));
 		

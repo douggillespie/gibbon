@@ -65,59 +65,8 @@ public class GibbonDLProcess extends PamProcess {
 	 */
 
 
-	Random r = new Random();
-	//	priva
+//	Random r = new Random();
 
-	//	public static void main(String args[]) {
-	//		
-	//		File modelFile = new File(mFile);
-	//		String modelFolder = modelFile.getParent();
-	//	
-	//		String modelName = modelFile.getName();
-	//		Model dlModel = Model.newInstance(mFile, "PyTorch");
-	//		try {
-	//			// model needs to be saved with Pytorch.jit.save
-	//			//https://docs.pytorch.org/docs/stable/generated/torch.jit.save.html 
-	//			dlModel.load(Paths.get(modelFolder), modelName);
-	//		} catch (Error e4) {
-	//			e4.printStackTrace();
-	//		} catch (MalformedModelException e) {
-	//			e.printStackTrace();
-	//		} catch (IOException e) {
-	//			e.printStackTrace();
-	//		}
-	//		System.out.println(dlModel.describeInput());
-	//		
-	//		DLTranslator dlTranslator = new DLTranslator();
-	//		Predictor<float[][][], float[]>  dlPredictor = dlModel.newPredictor(dlTranslator);
-	//		
-	//		Random r = new Random();
-	//
-	//		int d1 = 1;
-	//		int d2 = 32;
-	//		int d3 = 751;
-	//		
-	//		float[][][] input = new float[d1][d2][d3];
-	//		for (int i = 0; i < d2; i++) {
-	//			for (int j = 0; j < d3; j++) {
-	//				input[0][i][j] = r.nextFloat()/2f+0.1f;
-	//			}
-	//		}
-	//		
-	//		try {
-	//			
-	//			long time0 = System.currentTimeMillis();
-	//			System.out.println("Running prediction");
-	//			float[] result = dlPredictor.predict(input);
-	//			long timerun = System.currentTimeMillis() - time0;
-	//			System.out.println("Prediction complete in "+timerun+" ms" + " Results length: " + result.length);
-	//			
-	//		} catch (TranslateException e) {
-	//			e.printStackTrace();
-	//		}
-	//		
-	//	}
-	//	
 	public GibbonDLProcess(GibbonControl gibbonControl) {
 		super(gibbonControl, null);
 		this.gibbonControl = gibbonControl;
@@ -151,6 +100,10 @@ public class GibbonDLProcess extends PamProcess {
 		// now call the model I guess ? 
 		float[] result = runModel(modelInputDataUnit);
 		if (result != null) {
+
+			// calculate levels in each segment to use in SNR measures for each call. 
+			float[] levels = getSignalLevels(modelInputDataUnit, result.length, gibbonControl.getGibbonParameters().melPower);
+			
 			// run it through a sigmoid
 			for (int i = 0; i < result.length; i++) {
 				result[i] = (float) sigmoid.value(result[i]);
@@ -158,8 +111,42 @@ public class GibbonDLProcess extends PamProcess {
 			GibbonResult gibbonResult = new GibbonResult(modelInputDataUnit.getTimeMilliseconds(),
 					modelInputDataUnit.getEndTimeInMilliseconds() - modelInputDataUnit.getTimeMilliseconds(), 
 					modelInputDataUnit.getChannelBitmap(), result);
+			gibbonResult.setLevels(levels);
 			resultDataBlock.addPamData(gibbonResult);
 		}
+	}
+
+	/**
+	 * get some noise measures for each segment. Bit of a bodge, but divide
+	 * the input data up into as many equal segments as there are results and
+	 * give a mean level for each.  Just need to know the power of the data
+	 * which is currently 1, so for an RMS will need to square. If the power 
+	 * was 2, this wouldn't be necessary. 
+	 * @param modelInputDataUnit
+	 * @param length
+	 * @param melPower
+	 * @return
+	 */
+	private float[] getSignalLevels(ModelInputDataUnit modelInputDataUnit, int length, int melPower) {
+		float[][] modelData = modelInputDataUnit.modelData;
+		double step = (double) modelData.length / length;
+		float[] levels = new float[length];
+		double pow = 2./melPower;
+		int nm = modelData[0].length; // probably 32!
+		for (int i = 0; i < length; i++) {
+			int b1 = (int) Math.floor(i*step);
+			int b2 = (int) Math.min(Math.floor((i+1)*step), modelData.length);
+			double l = 0;
+			for (int b = b1; b < b2; b++) {
+				for (int m = 0; m < nm; m++) {
+					l += Math.pow(modelData[b][m], pow);
+				}
+			}
+			l /= (b2-b1);
+//			levels[i] = (float) Math.sqrt(l);
+			levels[i] = (float) l; // don't bother with the sqrt since we're going to add the squared values anyway. 
+		}
+		return levels;
 	}
 
 	private float[] runModel(ModelInputDataUnit modelInputDataUnit) {
