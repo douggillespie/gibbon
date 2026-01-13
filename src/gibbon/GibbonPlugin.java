@@ -42,8 +42,7 @@ public class GibbonPlugin implements PamPluginInterface {
 
 	@Override
 	public String getVersion() {
-		// TODO Auto-generated method stub
-		return "0.0";
+		return "1.1";
 	}
 
 	@Override
