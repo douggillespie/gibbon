@@ -359,7 +359,7 @@ public void setSampleRate(float sampleRate, boolean notify) {
 	 * Had to override this since some of the output data of this may 
 	 * have a different sample rate. 
 	 */
-	this.sampleRate = sampleRate;
+	super.setSampleRate(sampleRate, false);
 	GibbonParameters params = gibbonControl.getGibbonParameters();
 	fftDataBlock.setSampleRate(params.modelSampleRate, notify);
 	modelInputDataBlock.setSampleRate(params.modelSampleRate, notify);

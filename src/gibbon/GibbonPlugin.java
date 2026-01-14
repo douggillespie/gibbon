@@ -57,7 +57,7 @@ public class GibbonPlugin implements PamPluginInterface {
 
 	@Override
 	public String getAboutText() {
-		return "AI Detector gor Gibbon calls";
+		return "AI Detector for Gibbon call detection and annotation";
 	}
 
 	@Override
