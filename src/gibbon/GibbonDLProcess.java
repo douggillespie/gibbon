@@ -24,7 +24,9 @@ import ai.djl.ndarray.types.Shape;
 import ai.djl.translate.TranslateException;
 import ai.djl.translate.Translator;
 import ai.djl.translate.TranslatorContext;
+import ai.djl.util.PairList;
 import gibbon.io.GibbonDatabase;
+import gibbon.io.GibbonModelLogging;
 import gibbon.io.GibbonResultBinary;
 import gibbon.offline.GibbonResultDatagram;
 import gibbon.swing.GibbonOverlayDraw;
@@ -43,6 +45,9 @@ public class GibbonDLProcess extends PamProcess {
 	private GibbonResultDataBlock resultDataBlock;
 	private GibbonControl gibbonControl;
 	private int highestChannel;
+	
+	private ModelInfoDataBlock modelInfoDataBlock;
+	private ModelInfo modelInfo;
 
 	//	String mFile = "C:\\Users\\dg50\\source\\repos\\Arcus-CRNN\\runNewData\\model\\crnn_model_finetuned_3.pt";
 	//	static String mFile = "C:\\Users\\dg50\\source\\repos\\gibbon\\src\\models\\crnn_model0_for_java.pt";
@@ -75,7 +80,9 @@ public class GibbonDLProcess extends PamProcess {
 		addOutputDataBlock(resultDataBlock);
 		resultDataBlock.setBinaryDataSource(new GibbonResultBinary(resultDataBlock));
 		resultDataBlock.setDatagramProvider(new GibbonResultDatagram(gibbonControl, resultDataBlock));
-
+		
+		modelInfoDataBlock = new ModelInfoDataBlock(gibbonControl, this);
+		modelInfoDataBlock.SetLogging(new GibbonModelLogging(gibbonControl, modelInfoDataBlock));
 
 		setParentDataBlock(gibbonControl.getGibbonPreProcess().getModelInputDataBlock());
 
@@ -84,8 +91,13 @@ public class GibbonDLProcess extends PamProcess {
 
 	@Override
 	public void pamStart() {
-		// TODO Auto-generated method stub
-
+		/*
+		 * Write the model info to the database. 
+		 */
+		if (modelInfo != null) {
+			ModelInfoDataUnit midu = new ModelInfoDataUnit(PamCalendar.getTimeInMillis(), modelInfo);
+			modelInfoDataBlock.addPamData(midu);
+		}
 	}
 
 	@Override
@@ -246,7 +258,14 @@ public class GibbonDLProcess extends PamProcess {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
 		System.out.println("Load model " + params.modelLocation + ", describeInput: " + dlModel.describeInput());
+		PairList<String, Shape> ip = dlModel.describeInput();
+		String ipDesc = null;
+		if (ip != null) {
+			ipDesc = ip.toString();
+		}
+		modelInfo = new ModelInfo(modelFile, ipDesc);
 
 		dlTranslator = new DLTranslator();
 		dlPredictor = dlModel.newPredictor(dlTranslator);
