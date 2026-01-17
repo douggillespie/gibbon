@@ -112,7 +112,7 @@ public class GibbonDatabase extends AcousticSQLLogging {
 		dataUnit.setAutoTimeMillis(sqlTypes.millisFromTimeStamp(autoStart.getValue()));
 		Double aD = (Double) autoDuration.getValue();
 		if (aD != null) {
-			dataUnit.setAutoDuration(aD);
+			dataUnit.setAutoDuration(aD * 1000);
 		}
 		dataUnit.setSNR((Double) snr.getValue());
 		dataUnit.setAutoDetection(autoDetection.getBooleanValue());

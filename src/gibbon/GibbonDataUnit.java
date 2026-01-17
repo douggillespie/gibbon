@@ -89,6 +89,7 @@ public class GibbonDataUnit extends PamDataUnit implements PamDetection {
 		if (callType != null) {
 			str += "<br>Call Type: " + callType;
 		}
+		str += "<br>Confidence: " + confidence;
 		if (snr != null) {
 			str += String.format("<br>SNR: %3.1fdB", snr); 
 		}
