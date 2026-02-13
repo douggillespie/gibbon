@@ -205,6 +205,9 @@ public class GibbonPreProcess extends PamProcess {
 		double[] chBgnd = channelBackgrounds[chan];
 		for (int i = 0; i < params.nSliceX; i++) {
 			FFTDataUnit fft = spectrogramBlock.dataList[i];
+			if (fft == null) {
+				return;
+			}
 			double[] mels = melConverter.melFromComplex(fft.getFftData());
 			for (int j = 0; j < params.nMels; j++) {
 				data[j][i] = (float) mels[j];
