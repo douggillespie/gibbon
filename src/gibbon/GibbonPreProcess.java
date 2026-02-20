@@ -50,6 +50,9 @@ public class GibbonPreProcess extends PamProcess {
 	private DecimatorWorker decimatorWorker;
 
 	private double[][] channelBackgrounds = new double[PamConstants.MAX_CHANNELS][];;
+	
+//	private InfiniteSor[] infiniteSorts;
+	private InfiniteSort[][] infiniteSorts;
 
 	public GibbonPreProcess(GibbonControl gibbonControl) {
 		super(gibbonControl, null);
