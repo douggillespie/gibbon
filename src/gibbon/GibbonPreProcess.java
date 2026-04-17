@@ -52,7 +52,7 @@ public class GibbonPreProcess extends PamProcess {
 	private double[][] channelBackgrounds = new double[PamConstants.MAX_CHANNELS][];;
 	
 //	private InfiniteSor[] infiniteSorts;
-	private InfiniteSort[][] infiniteSorts;
+	private PercentileFilter[] percentFilters;
 
 	public GibbonPreProcess(GibbonControl gibbonControl) {
 		super(gibbonControl, null);
@@ -121,10 +121,16 @@ public class GibbonPreProcess extends PamProcess {
 		 */
 		melConverter = new MelConverter(params.modelSampleRate, params.fLow, params.fHigh, params.fftLength, params.nMels, params.melPower);
 
-
 		for (int i = 0; i <= highestChan; i++) {
 			if (channelBackgrounds[i] == null || channelBackgrounds[i].length != params.nMels) {
 				channelBackgrounds[i] = new double[params.nMels];
+			}
+		}
+		
+		if (percentFilters == null || percentFilters.length != highestChan+1) {
+			percentFilters = new PercentileFilter[highestChan+1];
+			for (int i = 0; i <= highestChan; i++) {
+				percentFilters[i] = new PercentileFilter(params.nMels, params.nSliceX);
 			}
 		}
 
@@ -203,9 +209,11 @@ public class GibbonPreProcess extends PamProcess {
 		int chan = spectrogramBlock.channelIndex;
 		GibbonParameters params = gibbonControl.getGibbonParameters();
 		float[][] data = new float[params.nMels][params.nSliceX]; // is this the wrong way around ? 
-		float minVal = Float.MAX_VALUE;
-		float maxVal = 0;
-		double[] chBgnd = channelBackgrounds[chan];
+		double[] doubdata = new double[params.nMels];
+		double minVal = Float.MAX_VALUE;
+		double maxVal = 0;
+//		double[] chBgnd = channelBackgrounds[chan];
+		PercentileFilter pFilt = percentFilters[chan];
 		for (int i = 0; i < params.nSliceX; i++) {
 			FFTDataUnit fft = spectrogramBlock.dataList[i];
 			if (fft == null) {
@@ -213,51 +221,33 @@ public class GibbonPreProcess extends PamProcess {
 			}
 			double[] mels = melConverter.melFromComplex(fft.getFftData());
 			for (int j = 0; j < params.nMels; j++) {
-				data[j][i] = (float) mels[j];
-				minVal = Math.min(minVal, data[j][i]);
-				maxVal = Math.max(maxVal, data[j][i]);
+				doubdata[j] = mels[j];
+				minVal = Math.min(minVal, doubdata[j]);
+				maxVal = Math.max(maxVal, doubdata[j]);
+				doubdata[j] = Math.min(10*Math.log10(Math.max(1e-5, doubdata[j])), 80);
 			}
-		}
-		/**
-		 * If doing amplitudetodb, note that the default has a minimum of 1e-5 on the input and and 80dB on the output
-		 */
-		for (int i = 0; i < params.nSliceX; i++) {
+			// get the current medians
+			double[] meds = pFilt.getMedians();
+			// update the medians. 
+			pFilt.addData(doubdata);
+			// and calculate final output values. 
 			for (int j = 0; j < params.nMels; j++) {
-				data[j][i] = (float) Math.min(10*Math.log10(Math.max(1e-5, data[j][i])), 80);
+				data[j][i] = (float) Math.max(doubdata[j]-meds[j], 0);
 			}
 		}
 		
-		/** 
-		 * Get the background mean
-		 * 
+		/**
+		 * If doing amplitudetodb, note that the numpy default has a minimum of 1e-5 on the input and and 80dB on the output
 		 */
-		for (int i = 0; i < params.nSliceX; i++) {
-			for (int j = 0; j < params.nMels; j++) {
-				chBgnd[j] += (data[j][i]-chBgnd[j]) / 1000;				
-			}
-		}
-
-	/*
-	 * If we're to normalise the data, run this code block ...
-	 */
-	//		for (int i = 0; i < params.nSliceX; i++) {
-	//			for (int j = 0; j < params.nMels; j++) {
-	//				data[j][i] = (data[j][i] - minVal) /(maxVal-minVal);
-	//			}
-	//		}
-	/**
-	 * To subtract off the mean, run this (which isn't the same as the Python code since that
-	 * was doing a mean for an entire file, whereas we're really reliant on doing an evolving mean here. 
-	 * need to loop through the i times and j nMels
-	 */
-	for (int i = 0; i < params.nSliceX; i++) {
-		for (int j = 0; j < params.nMels; j++) {
-			data[j][i] -= chBgnd[j];
-			data[j][i] = Math.max(data[j][i], 0);
-		}
-	}
-
-
+//		for (int i = 0; i < params.nSliceX; i++) {
+//			// final data will be float, but do a temp array of doubles to do the median subtraction
+//			double[] meds = pFilt.getMedians();
+//			pFilt.addData(data[j]);
+//			for (int j = 0; j < params.nMels; j++) {
+//				
+//				data[j][i] = (float) Math.min(10*Math.log10(Math.max(1e-5, data[j][i])), 80);
+//			}
+//		}
 
 
 	FFTDataUnit firstFFT = spectrogramBlock.dataList[0];

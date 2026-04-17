@@ -1,5 +1,7 @@
 package gibbon;
 
+import java.util.Arrays;
+
 import gpl.whiten.InfiniteSort;
 
 public class PercentileFilter {
@@ -57,10 +59,71 @@ public class PercentileFilter {
 	}
 
 	public void setnLines(int nLines) {
-		this.nLines = nLines;
-		if (nLines != infiniteSorts.length) {
-			infiniteSorts = Arrays.CopyOf(infiniteSorts, nLines);
+		if (nLines != this.nLines) {
+			infiniteSorts = Arrays.copyOf(infiniteSorts, nLines);
+			for (int i = this.nLines; i < nLines; i++) {
+				infiniteSorts[i] = new InfiniteSort(sortLength);
+			}
 		}
+
+		this.nLines = nLines;
+	}
+	
+	/**
+	 * Get a percentile value for a given line
+	 * @param line line number
+	 * @param percentile percentile (0 - 100)
+	 * @return closest percentile value
+	 */
+	public double getPercentile(int line, double percentile) {
+		int ind = (int) Math.round(percentile*sortLength/100);
+		ind = Math.max(0, Math.min(ind, sortLength-1));
+		InfiniteSort is = infiniteSorts[line];
+		return is.getData()[is.getSortInd()[ind]];
+	}
+	
+	/**
+	 * Get a percentile value for all lines. 
+	 * @param percentile percentile (0 - 100)
+	 * @return array of closest percentile values. 
+	 */
+	public double[] getPercentiles(double percentile) {
+		int ind = (int) Math.round(percentile*sortLength/100);
+		ind = Math.max(0, Math.min(ind, sortLength-1));
+		double[] out = new double[nLines];
+		for (int i = 0; i < nLines; i++) {
+			InfiniteSort is = infiniteSorts[i];
+			out[i] = is.getData()[is.getSortInd()[ind]];
+		}
+		return out;
+	}
+	
+	public double[] getMedians() {
+		double[] out = new double[nLines];
+		for (int i = 0; i < nLines; i++) {
+			InfiniteSort is = infiniteSorts[i];
+			out[i] = is.getMedian();
+		}
+		return out;
+	}
+
+	/**
+	 * @return the sortLength
+	 */
+	public int getSortLength() {
+		return sortLength;
+	}
+
+	/**
+	 * Changing this will cause all sorters to reset to zero
+	 * @param sortLength the sortLength to set
+	 */
+	public void setSortLength(int sortLength) {
+		if (this.sortLength == sortLength) {
+			return;
+		}
+		this.sortLength = sortLength;
+		createSorters();
 	}
 	
 	
