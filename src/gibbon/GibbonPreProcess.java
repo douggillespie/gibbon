@@ -226,6 +226,15 @@ public class GibbonPreProcess extends PamProcess {
 		
 		/** 
 		 * Get the background mean
+		 * Current py code is doing
+		 * 11/6/26
+		 * per_chunk_medians = np.median(spectrograms, axis=2)
+		 * mean_background = np.mean(per_chunk_medians, axis=0)
+    	 * which looks like it's taking the median across all data, then the mean over time for
+    	 * what comes out of that. This may be a bit crazy if the data came from different recorders
+    	 * since the median value will be the upper edge of one set and the lower of the other. 
+    	 * So not at all sure that this is a sensible measure of central tendency.
+    	 * This might be very different to what I've got here which is  simple background subtraction.  
 		 * 
 		 */
 		for (int i = 0; i < params.nSliceX; i++) {
