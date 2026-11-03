@@ -89,8 +89,18 @@ public class GibbonDLProcess extends PamProcess {
 		new GibbonSpecPlugin(this, resultDataBlock);
 	}
 
+	/**
+	 * @return the modelInfoDataBlock
+	 */
+	public ModelInfoDataBlock getModelInfoDataBlock() {
+		return modelInfoDataBlock;
+	}
+
 	@Override
 	public void pamStart() {
+		if (gibbonControl.getModelType() != ModelType.PYTORCH) {
+			return;
+		}
 		/*
 		 * Write the model info to the database. 
 		 */
@@ -108,6 +118,9 @@ public class GibbonDLProcess extends PamProcess {
 
 	@Override
 	public void newData(PamObservable o, PamDataUnit arg) {
+		if (gibbonControl.getModelType() != ModelType.PYTORCH) {
+			return;
+		}
 		ModelInputDataUnit modelInputDataUnit = (ModelInputDataUnit) arg;
 		// now call the model I guess ? 
 		float[] result = runModel(modelInputDataUnit);
@@ -221,12 +234,19 @@ public class GibbonDLProcess extends PamProcess {
 
 	@Override
 	public void setupProcess() {
+		if (gibbonControl.getModelType() != ModelType.PYTORCH) {
+			return;
+		}
 		super.setupProcess();
 		prepareProcessOK();
 	}
 
 	@Override
 	public boolean prepareProcessOK() {
+		if (gibbonControl.getModelType() != ModelType.PYTORCH) {
+			setParentDataBlock(null);
+			return true;
+		}
 		GibbonParameters params = gibbonControl.getGibbonParameters();
 		// load the model file. Return false if it can't be set up. 
 

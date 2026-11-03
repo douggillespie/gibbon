@@ -59,10 +59,12 @@ public class GibbonDialog extends PamDialog {
 		mainPanel.add(BorderLayout.NORTH, sourcePanel.getPanel());
 		
 		JPanel modelPanel = new JPanel(new BorderLayout());
-		modelPanel.setBorder(new TitledBorder("Pythorch Model"));
+		modelPanel.setBorder(new TitledBorder("Modelfile"));
 		modelFile = new JTextField(50);
 		modelChooser = new PamFileChooser(PamFolders.getDefaultProjectFolder());
-		modelChooser.setFileFilter(new PamFileFilter("Pytorch Models", ".pt"));
+		PamFileFilter modelFilter = new PamFileFilter("Pytorch Models", ".pt");
+		modelFilter.addFileType(".zip");
+		modelChooser.setFileFilter(modelFilter);
 		browseModels = new JButton("Browse ...");
 		modelPanel.add(BorderLayout.NORTH, modelFile);
 		modelPanel.add(BorderLayout.SOUTH, new PamAlignmentPanel(browseModels, BorderLayout.EAST));
@@ -97,9 +99,9 @@ public class GibbonDialog extends PamDialog {
 	}
 	
 	public static GibbonParameters showDialog(GibbonControl gibbonControl) {
-		if (singleInstance == null || singleInstance.gibbonControl != gibbonControl) {
+//		if (singleInstance == null || singleInstance.gibbonControl != gibbonControl) {
 			singleInstance = new GibbonDialog(gibbonControl);
-		}
+//		}
 		singleInstance.setParams(gibbonControl.getGibbonParameters());
 		singleInstance.setVisible(true);
 		return singleInstance.params;

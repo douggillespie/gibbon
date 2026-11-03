@@ -382,5 +382,4 @@ public class GibbonMarkObserver implements OverlayMarkObserver {
 		return gibbonControl.getUnitName();
 	}
 
-
 }

@@ -83,6 +83,10 @@ public class GibbonPreProcess extends PamProcess {
 	@Override
 	public boolean prepareProcessOK() {
 		super.prepareProcessOK();
+		if (gibbonControl.getModelType() != ModelType.PYTORCH) {
+			setParentDataBlock(null);
+			return true;
+		}
 
 		super.setupProcess();
 		// then find the correct input datablock.
@@ -147,6 +151,9 @@ public class GibbonPreProcess extends PamProcess {
 //		if (gibbonControl.isViewer()) {
 //			return;
 //		}
+		if (gibbonControl.getModelType() != ModelType.PYTORCH) {
+			return;
+		}
 		if (o == getParentDataBlock()) {
 			RawDataUnit rawDataUnit = (RawDataUnit) arg;
 			if (decimatorWorker != null) { 

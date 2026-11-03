@@ -22,6 +22,7 @@ import gibbon.offline.CallOfflineTask;
 import gibbon.swing.GibbonDialog;
 import offlineProcessing.OLProcessDialog;
 import offlineProcessing.OfflineTaskGroup;
+import rawDeepLearningClassifier.segmenter.SegmenterProcess;
 
 public class GibbonControl extends PamControlledUnit implements PamSettings{
 
@@ -40,6 +41,8 @@ public class GibbonControl extends PamControlledUnit implements PamSettings{
 	private OfflineTaskGroup offlineTaskGroup;
 
 	private GibbonAnnotationHandler annotationHandler;
+
+	private GibbonJPAMProcess gibbonJpamProcess;
 	
 	public static final String helpPoint = "docs.gibbonoverview";
 
@@ -51,6 +54,8 @@ public class GibbonControl extends PamControlledUnit implements PamSettings{
 		addPamProcess(gibbonPreProcess);
 		gibbonDLProcess = new GibbonDLProcess(this);
 		addPamProcess(gibbonDLProcess);		
+		gibbonJpamProcess = new GibbonJPAMProcess(this, gibbonDLProcess);
+		addPamProcess(gibbonJpamProcess);
 		gibbonCallProcess = new GibbonCallProcess(this);
 		addPamProcess(gibbonCallProcess);
 		
@@ -134,6 +139,24 @@ public class GibbonControl extends PamControlledUnit implements PamSettings{
 		addOfflineTaskGroup(offlineTaskGroup);
 	}
 
+	/**
+	 * Get the type of model being run. 
+	 * @return
+	 */
+	public ModelType getModelType() {
+		String modelFile = gibbonParameters.modelLocation;
+		if (modelFile == null) {
+			return ModelType.UNKNOWN;
+		}
+		modelFile = modelFile.toLowerCase();
+		if (modelFile.endsWith(".pt")) {
+			return ModelType.PYTORCH;
+		}
+		if (modelFile.endsWith(".zip")) {
+			return ModelType.JPAM;
+		}
+		return ModelType.UNKNOWN;
+	}
 	/**
 	 * Offline task to reprocess all gibbon calls from the model result data. 
 	 * @param parentFrame
