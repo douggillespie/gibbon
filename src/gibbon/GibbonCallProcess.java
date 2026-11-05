@@ -89,7 +89,12 @@ public class GibbonCallProcess extends PamProcess {
 			bestResult = Arrays.copyOf(results, results.length);
 			resultTimes = Arrays.copyOf(times, times.length);
 			resultChannels = resultData.getChannelBitmap();
-			meanLevels = Arrays.copyOf(levels, levels.length);
+			if (levels != null) {
+				meanLevels = Arrays.copyOf(levels, levels.length);
+			}
+			else {
+				meanLevels = null;
+			}
 		}
 		else {
 			for (int i = 0; i < results.length; i++) {
