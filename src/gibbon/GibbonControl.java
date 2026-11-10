@@ -101,6 +101,7 @@ public class GibbonControl extends PamControlledUnit implements PamSettings{
 		if (changeType == PamControllerInterface.INITIALIZATION_COMPLETE) {
 			gibbonPreProcess.setupProcess();
 			gibbonDLProcess.setupProcess();
+			gibbonJpamProcess.setupProcess();
 			gibbonCallProcess.setupProcess();
 		}
 	}
@@ -175,6 +176,9 @@ public class GibbonControl extends PamControlledUnit implements PamSettings{
 		if (newParams != null) {
 			gibbonParameters = newParams;
 			gibbonPreProcess.setupProcess();
+			gibbonDLProcess.setupProcess();
+			gibbonJpamProcess.setupProcess();
+			gibbonCallProcess.setupProcess();
 			return true;
 		}
 		else {

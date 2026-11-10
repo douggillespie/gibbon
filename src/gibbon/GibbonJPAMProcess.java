@@ -58,6 +58,15 @@ public class GibbonJPAMProcess extends PamProcess implements SegmentGroupObserve
 	}
 
 	@Override
+	public void setupProcess() {
+		if (gibbonControl.getModelType() != ModelType.JPAM) {
+			return;
+		}
+		super.setupProcess();
+		prepareProcessOK();
+	}
+	
+	@Override
 	public boolean prepareProcessOK() {
 		if (gibbonControl.getModelType() != ModelType.JPAM) {
 			setParentDataBlock(null);
